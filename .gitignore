@@ -1,0 +1,10 @@
+# Packaging
+*.egg-info
+
+# PyCache
+__pycache__/
+*.pyc
+
+# Tests
+.tox/
+.pytest_cache/
