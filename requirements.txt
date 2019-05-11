@@ -5,5 +5,8 @@ tox==3.9.0
 wheel==0.30.0
 twine==1.13.0
 
+# Library dependencies
+beautifulsoup4==4.7.1
+
 -r requirements/codestyle.txt
 -r requirements/testing.txt

@@ -16,5 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from auto_amp import urls as amp_urls
 
-urlpatterns = [path("admin/", admin.site.urls), path("", include("website.urls"))]
+from website import urls as website_urls
+
+
+urlpatterns = [
+    path("admin", admin.site.urls),
+    path("", include(website_urls)),
+    path("amp", include(amp_urls)),
+]

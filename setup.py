@@ -14,5 +14,5 @@ setup(
     author_email="be.smaniotto@gmail.com",
     url="https://github.com/smaniotto/django-auto-amp/",
     license="MIT",
-    install_requires=["Django>=1.11,<=2.2"],
+    install_requires=["Django>=1.11,<=2.2", "beautifulsoup>=4,<=5"],
 )
