@@ -108,3 +108,26 @@ def test_insert_charset_meta(parsed_html, parsed_html_lean):
 
     parsed_amp_lean = utils.insert_charset_meta(parsed_html_lean)
     assert parsed_amp_lean.head.find("meta", charset="utf-8") is not None
+
+
+def test_insert_viewport_meta(parsed_html, parsed_html_lean):
+    """
+    Asserts that the correct viewport meta tag content is added to the HTML head.
+    """
+    viewport_content = "width=device-width,minimum-scale=1,initial-scale=1"
+
+    parsed_amp = utils.insert_viewport_meta(parsed_html)
+    assert (
+        parsed_amp.head.find(
+            "meta", attrs={"name": "viewport", "content": viewport_content}
+        )
+        is not None
+    )
+
+    parsed_amp_lean = utils.insert_viewport_meta(parsed_html_lean)
+    assert (
+        parsed_amp_lean.head.find(
+            "meta", attrs={"name": "viewport", "content": viewport_content}
+        )
+        is not None
+    )
