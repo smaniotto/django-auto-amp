@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from auto_amp import utils
@@ -50,7 +52,7 @@ def test_canonical_to_amp_path_discovery(client, mocker):
 
 def test_insert_html_amp(parsed_html):
     """
-    Asserts that the 'amp' attribute is added to a valid and clean HTML document.
+    Asserts that the 'amp' attribute is added to the html tag.
     """
     parsed_amp = utils.insert_html_amp(parsed_html)
     assert parsed_amp.find("html", amp="") is not None
@@ -58,8 +60,19 @@ def test_insert_html_amp(parsed_html):
 
 def test_insert_canonical_link(parsed_html):
     """
-    Asserts that a link to the canonical path is added to the HTML header.
+    Asserts that a link to the canonical path is added to the HTML head.
     """
     path = "/index"
     parsed_amp = utils.insert_canonical_link(parsed_html, path)
     assert parsed_amp.head.find("link", rel="canonical", href=path) is not None
+
+
+def test_insert_amp_js(parsed_html):
+    """
+    Asserts that the script tag to load the AMP project JS is added the the HTML head.
+    """
+    parsed_amp = utils.insert_amp_js(parsed_html)
+    assert (
+        parsed_amp.head.find("script", src=re.compile("^https://cdn.ampproject.org.*"))
+        is not None
+    )
