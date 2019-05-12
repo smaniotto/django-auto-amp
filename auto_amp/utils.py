@@ -13,6 +13,7 @@ def add_amp_tags(content, path):
 
     parsed_amp = insert_html_amp(parsed_amp)
     parsed_amp = insert_canonical_link(parsed_amp, path)
+    parsed_amp = exclude_javascript(parsed_amp)
     parsed_amp = insert_amp_js(parsed_amp)
     parsed_amp = insert_charset_meta(parsed_amp)
     parsed_amp = insert_viewport_meta(parsed_amp)
@@ -117,4 +118,18 @@ def replace_external_stylesheets(parsed_amp):
         inline_css = parsed_amp.new_tag("style", attrs={"amp-custom": ""})
         inline_css.string = css_content
         parsed_amp.head.append(inline_css)
+    return parsed_amp
+
+
+def exclude_javascript(parsed_amp):
+    """
+    Removes all application and third-party JS references. Only allowed text types are
+    'application/json' and 'application/ld+json'.
+    """
+    javascript_tags = parsed_amp.find_all("script")
+    javascript_allowed_tags = parsed_amp.find_all(
+        "script", attrs={"type": re.compile("^(application/json|application/ld+json)$")}
+    )
+    for tag in set(javascript_tags) - set(javascript_allowed_tags):
+        tag.extract()
     return parsed_amp

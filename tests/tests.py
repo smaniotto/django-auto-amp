@@ -25,6 +25,8 @@ def parsed_html():
             <body>
                 <h1>Django Auto AMP</h1>
                 <p>Generate automatic AMP from your Django templates</p>
+                <script type="text/javascript" src="/static/scripts.js" />
+                <script type="application/json" src="/static/data.json" />
             </body>
         </html>
         """
@@ -153,3 +155,13 @@ def test_replace_external_stylesheets(parsed_html, mocker):
     stylesheet_tag = parsed_amp.head.find("style", attrs={"amp-custom": ""})
     assert stylesheet_tag is not None
     assert stylesheet_tag.string == css_content
+
+
+def test_exclude_javascript(parsed_html):
+    """
+    Asserts that all application and third-party script tags are removed from the AMP
+    document and keeps only the allowed types.
+    """
+    assert len(parsed_html.find_all("script")) == 2
+    parsed_html = utils.exclude_javascript(parsed_html)
+    assert len(parsed_html.find_all("script")) == 1
