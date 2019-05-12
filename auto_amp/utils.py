@@ -12,6 +12,7 @@ def add_amp_tags(content, path):
     parsed_amp = insert_html_amp(parsed_amp)
     parsed_amp = insert_canonical_link(parsed_amp, path)
     parsed_amp = insert_amp_js(parsed_amp)
+    parsed_amp = insert_charset_meta(parsed_amp)
 
     return str(parsed_amp)
 
@@ -48,4 +49,16 @@ def insert_amp_js(parsed_amp):
         "script", src="https://cdn.ampproject.org/v0.js", **{"async": ""}
     )
     parsed_amp.head.append(amp_js)
+    return parsed_amp
+
+
+def insert_charset_meta(parsed_amp):
+    """
+    Inserts a script tag to load the AMP project JS.
+    """
+    if parsed_amp.find("meta", charset="utf-8"):
+        return parsed_amp
+
+    charset_meta = parsed_amp.new_tag("meta", charset="utf-8")
+    parsed_amp.head.insert(0, charset_meta)
     return parsed_amp

@@ -17,7 +17,28 @@ def parsed_html():
         <html>
             <head>
                 <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta name="viewport" content="width=device-width">
+                <title>Page title</title>
+            </head>
+            <body>
+                <h1>Django Auto AMP</h1>
+                <p>Generate automatic AMP from your Django templates</p>
+            </body>
+        </html>
+        """
+    )
+
+
+@pytest.fixture
+def parsed_html_lean():
+    """
+    Fixture to return the same HTML content as 'parsed_html' with less initial tags.
+    """
+    return utils.parse_html(
+        """
+        <!doctype hmtl>
+        <html>
+            <head>
                 <title>Page title</title>
             </head>
             <body>
@@ -76,3 +97,14 @@ def test_insert_amp_js(parsed_html):
         parsed_amp.head.find("script", src=re.compile("^https://cdn.ampproject.org.*"))
         is not None
     )
+
+
+def test_insert_charset_meta(parsed_html, parsed_html_lean):
+    """
+    Asserts that a charset meta tag is added to the HTML head.
+    """
+    parsed_amp = utils.insert_charset_meta(parsed_html)
+    assert parsed_amp.head.find("meta", charset="utf-8") is not None
+
+    parsed_amp_lean = utils.insert_charset_meta(parsed_html_lean)
+    assert parsed_amp_lean.head.find("meta", charset="utf-8") is not None
