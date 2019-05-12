@@ -1,4 +1,5 @@
 import re
+from unittest.mock import mock_open
 
 import pytest
 
@@ -19,6 +20,7 @@ def parsed_html():
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width">
                 <title>Page title</title>
+                <link rel="stylesheet" href="/static/styles.css" />
             </head>
             <body>
                 <h1>Django Auto AMP</h1>
@@ -131,3 +133,23 @@ def test_insert_viewport_meta(parsed_html, parsed_html_lean):
         )
         is not None
     )
+
+
+def test_replace_external_stylesheets(parsed_html, mocker):
+    """
+    Asserts that external stylesheet references are removed and replace by inline
+    content.
+    """
+    css_content = """
+        body {
+            font-family: sans-serif;
+        }
+    """
+    mocked_open = mocker.patch("builtins.open", mock_open(read_data=css_content))
+
+    parsed_amp = utils.replace_external_stylesheets(parsed_html)
+    assert mocked_open.call_count == 1
+
+    stylesheet_tag = parsed_amp.head.find("style", attrs={"amp-custom": ""})
+    assert stylesheet_tag is not None
+    assert stylesheet_tag.string == css_content

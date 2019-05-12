@@ -11,3 +11,6 @@ __pycache__/
 
 # Database files
 db.sqlite3
+
+# Collected static
+staticfiles/

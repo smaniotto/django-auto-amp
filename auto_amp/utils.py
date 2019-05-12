@@ -1,6 +1,8 @@
 import re
 
 from bs4 import BeautifulSoup
+from django.conf import settings
+from django.contrib.staticfiles import finders
 
 
 def add_amp_tags(content, path):
@@ -14,6 +16,7 @@ def add_amp_tags(content, path):
     parsed_amp = insert_amp_js(parsed_amp)
     parsed_amp = insert_charset_meta(parsed_amp)
     parsed_amp = insert_viewport_meta(parsed_amp)
+    parsed_amp = replace_external_stylesheets(parsed_amp)
 
     return str(parsed_amp)
 
@@ -81,4 +84,37 @@ def insert_viewport_meta(parsed_amp):
         )
         parsed_amp.head.insert(1, new_viewport_meta)
 
+    return parsed_amp
+
+
+def _fetch_file_content(href):
+    """
+    Checks whether the href corresponds to a local static file and retrieves its
+    content.
+    """
+    if href.startswith(settings.STATIC_URL):
+        static_path = re.sub(f"^{settings.STATIC_URL}", "", href, count=1)
+        filesystem_path = finders.find(static_path)
+        with open(filesystem_path, "r") as staticfile:
+            return staticfile.read()
+
+    # TODO: support third-party stylesheets
+
+    return ""
+
+
+def replace_external_stylesheets(parsed_amp):
+    """
+    Finds all stylesheets references, fetch their content and replace with inline
+    styles.
+    """
+    external_stylesheets = parsed_amp.find_all("link", attrs={"rel": "stylesheet"})
+    for stylesheet in external_stylesheets:
+        css_content = _fetch_file_content(stylesheet["href"])
+
+        stylesheet.extract()
+
+        inline_css = parsed_amp.new_tag("style", attrs={"amp-custom": ""})
+        inline_css.string = css_content
+        parsed_amp.head.append(inline_css)
     return parsed_amp
