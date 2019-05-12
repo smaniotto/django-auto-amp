@@ -165,3 +165,11 @@ def test_exclude_javascript(parsed_html):
     assert len(parsed_html.find_all("script")) == 2
     parsed_html = utils.exclude_javascript(parsed_html)
     assert len(parsed_html.find_all("script")) == 1
+
+
+def test_insert_amp_css_boilerplate(parsed_html):
+    """
+    Asserts that the AMP CSS boilerplate is added the the HTML head.
+    """
+    parsed_amp = utils.insert_amp_css_boilerplate(parsed_html)
+    assert parsed_amp.head.find("style", attrs={"amp-boilerplate": ""}) is not None

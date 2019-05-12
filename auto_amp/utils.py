@@ -18,6 +18,7 @@ def add_amp_tags(content, path):
     parsed_amp = insert_charset_meta(parsed_amp)
     parsed_amp = insert_viewport_meta(parsed_amp)
     parsed_amp = replace_external_stylesheets(parsed_amp)
+    parsed_amp = insert_amp_css_boilerplate(parsed_amp)
 
     return str(parsed_amp)
 
@@ -132,4 +133,38 @@ def exclude_javascript(parsed_amp):
     )
     for tag in set(javascript_tags) - set(javascript_allowed_tags):
         tag.extract()
+    return parsed_amp
+
+
+def insert_amp_css_boilerplate(parsed_amp):
+    """
+    Inserts AMP CSS boilerplate to the HTML document head.
+    """
+    css_boilerplate = (
+        "body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 "
+        "normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;"
+        "-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start"
+        " 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{"
+        "visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{"
+        "visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{"
+        "visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{"
+        "visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility"
+        ":hidden}to{visibility:visible}}"
+    )
+    css_boilerplate_tag = parsed_amp.new_tag("style", attrs={"amp-boilerplate": ""})
+    css_boilerplate_tag.string = css_boilerplate
+    parsed_amp.head.append(css_boilerplate_tag)
+
+    noscript_boilerplate = (
+        "body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation"
+        ":none}"
+    )
+    noscript_boilerplate_tag = parsed_amp.new_tag("noscript")
+    noscript_css_boilerplate_tag = parsed_amp.new_tag(
+        "style", attrs={"amp-boilerplate": ""}
+    )
+    noscript_css_boilerplate_tag.string = noscript_boilerplate
+    noscript_boilerplate_tag.append(noscript_css_boilerplate_tag)
+    parsed_amp.head.append(noscript_boilerplate_tag)
+
     return parsed_amp
