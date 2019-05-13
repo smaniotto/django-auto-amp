@@ -1,4 +1,5 @@
 import re
+import urllib
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -19,6 +20,7 @@ def add_amp_tags(content, path):
     parsed_amp = insert_viewport_meta(parsed_amp)
     parsed_amp = replace_external_stylesheets(parsed_amp)
     parsed_amp = insert_amp_css_boilerplate(parsed_amp)
+    parsed_amp = replace_amp_img(parsed_amp)
 
     return str(parsed_amp)
 
@@ -166,5 +168,56 @@ def insert_amp_css_boilerplate(parsed_amp):
     noscript_css_boilerplate_tag.string = noscript_boilerplate
     noscript_boilerplate_tag.append(noscript_css_boilerplate_tag)
     parsed_amp.head.append(noscript_boilerplate_tag)
+
+    return parsed_amp
+
+
+def _get_image_info(uri):
+    """
+    Get image dimensions from a given URI.
+    Based on this StackOverflow answer: https://stackoverflow.com/a/37709319
+    """
+    try:
+        from PIL import ImageFile
+    except ImportError:
+        return 0, 0
+
+    img_file = urllib.request.urlopen(uri)
+    parser = ImageFile.Parser()
+
+    while True:
+        data = img_file.read(1024)
+        if not data:
+            break
+
+        parser.feed(data)
+
+        if parser.image:
+            return parser.image.size
+
+    img_file.close()
+    return 0, 0
+
+
+def replace_amp_img(parsed_amp):
+    """
+    Finds all 'img' tags and replace with AMP img version.
+    """
+    imgs = parsed_amp.find_all("img")
+    for img in imgs:
+        amp_img = parsed_amp.new_tag("amp-img", attrs=img.attrs)
+        amp_img["layout"] = amp_img.get("layout", "responsive")
+
+        img.replace_with(amp_img)
+
+        if amp_img.get("src") and (
+            amp_img.get("width") is None
+            or amp_img.get("height") is None
+            or amp_img.get("width")[-1] == "%"
+            or amp_img.get("height")[-1] == "%"
+        ):
+            width, height = _get_image_info(amp_img.get("src"))
+            amp_img["width"] = str(width)
+            amp_img["height"] = str(height)
 
     return parsed_amp

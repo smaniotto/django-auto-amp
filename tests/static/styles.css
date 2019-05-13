@@ -1,3 +1,7 @@
 body {
   font-family: sans-serif;
 }
+
+.image {
+  max-width: 800px;
+}

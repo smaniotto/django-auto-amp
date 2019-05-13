@@ -25,6 +25,9 @@ def parsed_html():
             <body>
                 <h1>Django Auto AMP</h1>
                 <p>Generate automatic AMP from your Django templates</p>
+                <img src="/static/img.jpg" width="500" height="300" />
+                <img src="/static/img.gif" layout="nodisplay" />
+                <img src="/static/img.png" />
                 <script type="text/javascript" src="/static/scripts.js" />
                 <script type="application/json" src="/static/data.json" />
             </body>
@@ -173,3 +176,35 @@ def test_insert_amp_css_boilerplate(parsed_html):
     """
     parsed_amp = utils.insert_amp_css_boilerplate(parsed_html)
     assert parsed_amp.head.find("style", attrs={"amp-boilerplate": ""}) is not None
+
+
+def test_replace_amp_img(parsed_html, mocker):
+    """
+    Asserts that 'img' tags are replaced by 'amp-img' tags with respective width,
+    height and layout attributes.
+    """
+    mocked_get_img_size = mocker.patch("auto_amp.utils._get_image_info")
+    mocked_get_img_size.return_value = 800, 600
+
+    parsed_html = utils.replace_amp_img(parsed_html)
+
+    assert (
+        parsed_html.find(
+            "amp-img", attrs={"layout": "responsive", "width": "500", "height": "300"}
+        )
+        is not None
+    )
+
+    assert (
+        parsed_html.find(
+            "amp-img", attrs={"layout": "nodisplay", "width": "800", "height": "600"}
+        )
+        is not None
+    )
+
+    assert (
+        parsed_html.find(
+            "amp-img", attrs={"layout": "responsive", "width": "800", "height": "600"}
+        )
+        is not None
+    )
